@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 
 import { TasksModel, TaskStatus } from './tasks.model';
@@ -31,7 +31,15 @@ export class TasksService {
   }
 
   getTaskById(id: string): TasksModel {
-    return this.tasks.find((task: TasksModel) => task.id === id);
+    const task = this.tasks.find((task: TasksModel) => task.id === id);
+
+    if (!task) {
+      throw new NotFoundException(
+        null,
+        `Tarefa não encontrada para o ID: ${id}`,
+      );
+    }
+    return task;
   }
 
   createTask(createTaskDto: CreateTaskDto): TasksModel {
@@ -47,13 +55,16 @@ export class TasksService {
     return task;
   }
 
-  updateTask(id: string, status: TaskStatus): TasksModel {
+  updateTaskStatus(id: string, status: TaskStatus): TasksModel {
     const task = this.getTaskById(id);
     task.status = status;
     return task;
   }
 
   deleteTaskStatus(id: string): void {
-    this.tasks = this.tasks.filter((task: TasksModel) => task.id !== id);
+    const taskFound = this.getTaskById(id);
+    this.tasks = this.tasks.filter(
+      (task: TasksModel) => task.id !== taskFound.id,
+    );
   }
 }
