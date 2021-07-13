@@ -18,5 +18,10 @@ Content-Type: application/json
 ###
 DELETE http://localhost:3000/tasks/f067a145-6eec-4767-b33a-1fe8328160d4
 
-
 ###
+PATCH http://localhost:3000/tasks/4a6c49dd-8464-4626-ac62-7de1e313a830/status
+Content-Type: application/json
+
+{
+   "status": "IN_PROGRESS"
+}
