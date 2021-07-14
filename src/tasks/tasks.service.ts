@@ -1,68 +1,54 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import { TaskRepository } from './task.repository';
 
 import { TaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-task-filter.dto';
+import { TaskEntity } from './task.entity';
 
 @Injectable()
 export class TasksService {
-  // private tasks: TaskStatusEnum[] = [];
-  // getAllTasks(): TaskStatusEnum[] {
-  //   return this.tasks;
-  // }
-  //
-  // getTasksWithFilters(filterDto: GetTaskFilterDto): TaskStatusEnum[] {
-  //   const { search, status } = filterDto;
-  //   let tasks = this.getAllTasks();
-  //
-  //   if (status) {
-  //     tasks = tasks.filter((task: TaskStatusEnum) => task.status === status);
-  //   }
-  //
-  //   if (search) {
-  //     tasks = tasks.filter((task: TaskStatusEnum) => {
-  //       return task.title.includes(search) || task.description.includes(search);
-  //     });
-  //   }
-  //
-  //   return tasks;
-  // }
-  //
-  // getTaskById(id: string): TaskStatusEnum {
-  //   const task = this.tasks.find((task: TaskStatusEnum) => task.id === id);
-  //
-  //   if (!task) {
-  //     throw new NotFoundException(
-  //       null,
-  //       `Tarefa não encontrada para o ID: ${id}`,
-  //     );
-  //   }
-  //   return task;
-  // }
-  //
-  // createTask(createTaskDto: CreateTaskDto): TaskStatusEnum {
-  //   const { title, description } = createTaskDto;
-  //
-  //   const task: TaskStatusEnum = {
-  //     id: uuid(),
-  //     title,
-  //     description,
-  //     status: TaskStatus.OPEN,
-  //   };
-  //   this.tasks.push(task);
-  //   return task;
-  // }
-  //
-  // updateTaskStatus(id: string, status: TaskStatus): TaskStatusEnum {
-  //   const task = this.getTaskById(id);
-  //   task.status = status;
-  //   return task;
-  // }
-  //
-  // deleteTaskStatus(id: string): void {
-  //   const taskFound = this.getTaskById(id);
-  //   this.tasks = this.tasks.filter(
-  //     (task: TaskStatusEnum) => task.id !== taskFound.id,
-  //   );
-  // }
+  constructor(
+    @InjectRepository(TaskRepository)
+    private taskRepository: TaskRepository,
+  ) {}
+
+  getAllTasks(filterDto: GetTaskFilterDto): Promise<TaskEntity[]> {
+    return this.taskRepository.getAllTasks(filterDto);
+  }
+
+  async getTaskById(id: string): Promise<TaskEntity> {
+    const taskFound = await this.taskRepository.findOne(id);
+
+    if (!taskFound) {
+      throw new NotFoundException(
+        null,
+        `Tarefa não encontrada para o ID: ${id}`,
+      );
+    }
+    return taskFound;
+  }
+
+  createTask(createTaskDto: CreateTaskDto): Promise<TaskEntity> {
+    return this.taskRepository.createTask(createTaskDto);
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    const result = await this.taskRepository.delete(id);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(
+        null,
+        `Tarefa não encontrada para o ID: ${id}`,
+      );
+    }
+  }
+
+  async updateTaskStatus(id: string, status: TaskStatus): Promise<TaskEntity> {
+    const taskUpdated = await this.getTaskById(id);
+    taskUpdated.status = status;
+    return await this.taskRepository.save(taskUpdated);
+  }
 }
