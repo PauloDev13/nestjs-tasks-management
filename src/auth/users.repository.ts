@@ -1,13 +1,12 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { compare, genSalt, hash } from 'bcrypt';
-
-import { UserEntity } from './user.entity';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import {
   ConflictException,
   InternalServerErrorException,
-  UnauthorizedException,
 } from '@nestjs/common';
+import { EntityRepository, Repository } from 'typeorm';
+import { genSalt, hash } from 'bcrypt';
+
+import { UserEntity } from './user.entity';
+import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 
 @EntityRepository(UserEntity)
 export class UsersRepository extends Repository<UserEntity> {
@@ -31,17 +30,6 @@ export class UsersRepository extends Repository<UserEntity> {
           'Ocorreu um erro inesperado.',
         );
       }
-    }
-  }
-
-  async signIn(authCredentialsDto: AuthCredentialsDto): Promise<string> {
-    const { username, password } = authCredentialsDto;
-    const user = await this.findOne({ username });
-
-    if (user && (await compare(password, user.password))) {
-      return 'success';
-    } else {
-      throw new UnauthorizedException(null, 'Credenciais de login inválidas.');
     }
   }
 }
