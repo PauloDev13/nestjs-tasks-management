@@ -1,4 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
 import { TaskEntity } from '../tasks/task.entity';
 
 @Entity({ name: 'users' })
